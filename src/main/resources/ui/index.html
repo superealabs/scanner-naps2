@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent de Scan Local</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Agent de Scan Local</h1>
+            <div class="status-indicator">
+                <span id="healthStatus" class="status-badge">Vérification...</span>
+            </div>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-button active" data-tab="scan">Nouveau Scan</button>
+            <button class="tab-button" data-tab="history">Historique</button>
+            <button class="tab-button" data-tab="status">Statut</button>
+        </nav>
+
+        <!-- Onglet Scan -->
+        <div id="scanTab" class="tab-content active">
+            <div class="card">
+                <h2>Créer un nouveau scan</h2>
+                <form id="scanForm">
+                    <div class="form-group">
+                        <label for="scannerName">Nom du scanner (optionnel):</label>
+                        <input type="text" id="scannerName" name="scannerName" placeholder="Laisser vide pour utiliser le scanner par défaut">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="resolution">Résolution (DPI):</label>
+                        <input type="number" id="resolution" name="resolution" value="300" min="72" max="1200">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="colorMode">Mode couleur:</label>
+                        <select id="colorMode" name="colorMode">
+                            <option value="Color">Couleur</option>
+                            <option value="Grayscale">Niveaux de gris</option>
+                            <option value="BlackAndWhite">Noir et blanc</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="pageSize">Taille de page:</label>
+                        <select id="pageSize" name="pageSize">
+                            <option value="A4">A4</option>
+                            <option value="Letter">Letter</option>
+                            <option value="Legal">Legal</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Créer et démarrer le scan</button>
+                </form>
+                
+                <div id="scanProgress" class="progress-container" style="display: none;">
+                    <h3>Scan en cours</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <p id="scanStatusText">Initialisation...</p>
+                    <button id="cancelScanBtn" class="btn btn-danger">Annuler</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Onglet Historique -->
+        <div id="historyTab" class="tab-content">
+            <div class="card">
+                <h2>Historique des scans</h2>
+                <div class="filters">
+                    <label>
+                        Filtrer par statut:
+                        <select id="statusFilter">
+                            <option value="">Tous</option>
+                            <option value="PENDING">En attente</option>
+                            <option value="RUNNING">En cours</option>
+                            <option value="COMPLETED">Terminé</option>
+                            <option value="FAILED">Échoué</option>
+                            <option value="CANCELLED">Annulé</option>
+                        </select>
+                    </label>
+                    <button id="refreshHistoryBtn" class="btn btn-secondary">Actualiser</button>
+                </div>
+                <div id="historyList" class="history-list"></div>
+            </div>
+        </div>
+
+        <!-- Onglet Statut -->
+        <div id="statusTab" class="tab-content">
+            <div class="card">
+                <h2>Statut du système</h2>
+                <div id="systemStatus" class="status-grid">
+                    <div class="status-item">
+                        <label>NAPS2:</label>
+                        <span id="naps2Status" class="status-value">Vérification...</span>
+                    </div>
+                    <div class="status-item">
+                        <label>Base de données:</label>
+                        <span id="dbStatus" class="status-value">Vérification...</span>
+                    </div>
+                    <div class="status-item">
+                        <label>Statut global:</label>
+                        <span id="globalStatus" class="status-value">Vérification...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
+

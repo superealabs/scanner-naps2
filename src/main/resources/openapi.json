@@ -1,0 +1,504 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Scanner Agent API",
+    "description": "API REST pour l'agent de scan local utilisant NAPS2",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:7070/api",
+      "description": "Serveur local"
+    }
+  ],
+  "paths": {
+    "/scans": {
+      "get": {
+        "summary": "Lister l'historique des scans",
+        "operationId": "getScanHistory",
+        "tags": ["Scans"],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            },
+            "description": "Nombre maximum de résultats"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            },
+            "description": "Décalage pour la pagination"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["PENDING", "RUNNING", "COMPLETED", "FAILED", "CANCELLED"]
+            },
+            "description": "Filtrer par statut"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des scans",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScanHistoryResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Créer une nouvelle session de scan",
+        "operationId": "createScan",
+        "tags": ["Scans"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScanRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Session créée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScanResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Un scan est déjà en cours",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/scans/{scanId}": {
+      "get": {
+        "summary": "Récupérer le statut d'une session de scan",
+        "operationId": "getScanStatus",
+        "tags": ["Scans"],
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Identifiant unique de la session de scan"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Statut de la session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScanResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Session non trouvée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Annuler un scan en cours",
+        "operationId": "cancelScan",
+        "tags": ["Scans"],
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Scan annulé",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScanResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Session non trouvée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Scan non annulable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/scans/{scanId}/start": {
+      "post": {
+        "summary": "Démarrer le scan pour une session",
+        "operationId": "startScan",
+        "tags": ["Scans"],
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Scan démarré",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScanResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Session non trouvée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Un scan est déjà en cours",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "État invalide",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "NAPS2 non disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/scans/{scanId}/pdf": {
+      "get": {
+        "summary": "Télécharger le PDF généré",
+        "operationId": "getScanPdf",
+        "tags": ["Scans"],
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fichier PDF",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Session non trouvée ou PDF non disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Scan non terminé",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health check du système",
+        "operationId": "healthCheck",
+        "tags": ["System"],
+        "responses": {
+          "200": {
+            "description": "Statut du système",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ScanRequest": {
+        "type": "object",
+        "properties": {
+          "scannerName": {
+            "type": "string",
+            "description": "Nom du scanner NAPS2 (optionnel)"
+          },
+          "options": {
+            "$ref": "#/components/schemas/ScanOptions"
+          }
+        }
+      },
+      "ScanOptions": {
+        "type": "object",
+        "properties": {
+          "resolution": {
+            "type": "integer",
+            "description": "Résolution en DPI",
+            "example": 300
+          },
+          "colorMode": {
+            "type": "string",
+            "enum": ["Color", "Grayscale", "BlackAndWhite"],
+            "description": "Mode couleur"
+          },
+          "pageSize": {
+            "type": "string",
+            "description": "Taille de page",
+            "example": "A4"
+          },
+          "driver": {
+            "type": "string",
+            "description": "Driver du scanner (ex: wia, twain)",
+            "example": "wia"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["glass", "feeder", "duplex"],
+            "description": "Source de papier (glass par défaut = vitre, feeder = chargeur, duplex = recto-verso)",
+            "example": "glass"
+          }
+        }
+      },
+      "ScanResponse": {
+        "type": "object",
+        "properties": {
+          "scanId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifiant unique de la session"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PENDING", "RUNNING", "COMPLETED", "FAILED", "CANCELLED"],
+            "description": "Statut de la session"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de création"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de démarrage"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de complétion"
+          },
+          "errorMessage": {
+            "type": "string",
+            "description": "Message d'erreur si échec"
+          },
+          "pdfPath": {
+            "type": "string",
+            "description": "Chemin du fichier PDF généré"
+          },
+          "pdfSize": {
+            "type": "integer",
+            "description": "Taille du fichier PDF en octets"
+          }
+        }
+      },
+      "ScanHistoryResponse": {
+        "type": "object",
+        "properties": {
+          "scans": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScanResponse"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "description": "Nombre total de scans"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Limite de résultats"
+          },
+          "offset": {
+            "type": "integer",
+            "description": "Décalage pour pagination"
+          }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["UP", "DEGRADED"],
+            "description": "Statut global"
+          },
+          "naps2Available": {
+            "type": "boolean",
+            "description": "NAPS2 disponible"
+          },
+          "databaseConnected": {
+            "type": "boolean",
+            "description": "Base de données connectée"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Code d'erreur"
+          },
+          "message": {
+            "type": "string",
+            "description": "Message d'erreur"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Horodatage de l'erreur"
+          },
+          "scanId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID de scan concerné (si applicable)"
+          }
+        }
+      }
+    }
+  }
+}
+
