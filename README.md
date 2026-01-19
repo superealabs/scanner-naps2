@@ -170,6 +170,35 @@ Health check du système.
 }
 ```
 
+#### GET /api/devices
+Lister les périphériques de scan disponibles.
+
+**Query Parameters** :
+- `driver` (optionnel) : Filtrer par driver (`wia`, `twain`, `escl`, `sane`, `apple`)
+
+**Response 200** :
+```json
+{
+  "devices": [
+    {
+      "name": "HP ScanJet Pro 2000 s2 (USB)",
+      "driver": "wia",
+      "id": "wia_hp_scanjet_pro_2000_s2_usb"
+    },
+    {
+      "name": "Canon MP495",
+      "driver": "twain",
+      "id": "twain_canon_mp495"
+    }
+  ],
+  "count": 2
+}
+```
+
+**Response 503** : NAPS2 non disponible
+
+**Response 500** : Erreur serveur
+
 ## Interface Web
 
 L'interface web est accessible sur `http://localhost:7070/ui`
@@ -191,6 +220,61 @@ Fonctionnalités :
 - Tester les endpoints directement depuis le navigateur
 - Voir les schémas de requêtes et réponses
 - Spécification OpenAPI disponible sur `/api/openapi.json`
+
+## Composant Web Embarqué
+
+Le projet inclut un composant web réutilisable dans le dossier `components/` qui permet d'intégrer facilement la fonctionnalité de scan dans vos applications web.
+
+### Structure
+
+```
+components/
+├── index.html              # Page de test avec input file
+├── scan-component.js       # Web component principal (modal)
+├── scan-api.js            # Client API pour communiquer avec le scanner
+├── scan-styles.css        # Styles isolés du component
+└── README.MD              # Documentation détaillée du composant
+```
+
+### Utilisation rapide
+
+1. Copier les fichiers du dossier `components/` dans votre projet web
+2. Inclure les scripts dans votre page HTML :
+
+```html
+<script src="scan-api.js"></script>
+<script src="scan-component.js"></script>
+```
+
+3. Utiliser le composant :
+
+```html
+<!-- Input file cible -->
+<input type="file" id="myFileInput" accept=".pdf" />
+
+<!-- Web Component -->
+<scan-modal 
+    id="scanModal"
+    api-base-url="http://localhost:7070/api/scans"
+    target-input-id="myFileInput">
+</scan-modal>
+
+<!-- Bouton pour ouvrir la modal -->
+<button onclick="document.getElementById('scanModal').open()">
+    Scanner un document
+</button>
+```
+
+### Fonctionnalités du composant
+
+- **Chargement dynamique des scanners** : Liste automatiquement les scanners disponibles via l'endpoint `/api/devices`
+- **Synchronisation driver ↔ scanners** : Recharge automatiquement la liste des scanners quand le driver change
+- **Configuration complète** : Taille de papier, mode couleur, résolution, source, driver
+- **Aperçu PDF** : Visualisation du PDF scanné avant validation
+- **Injection automatique** : Injection du PDF dans un input file cible
+- **Isolation complète** : Utilise Shadow DOM pour éviter les conflits de styles
+
+Pour plus de détails, consultez le fichier `components/README.MD`.
 
 ## Dépannage
 
@@ -221,10 +305,13 @@ Vérifiez les permissions d'écriture dans le répertoire de la base de données
 
 - **ScannerAgent** : Point d'entrée principal
 - **HttpServer** : Serveur HTTP embarqué (Jetty)
-- **ScanController** : Contrôleur REST API
+- **ScanController** : Contrôleur REST API pour les scans
+- **DeviceController** : Contrôleur REST API pour la liste des périphériques
+- **HealthController** : Contrôleur REST API pour le health check
 - **ScanService** : Logique métier des scans
-- **Naps2Service** : Intégration avec NAPS2 CLI
+- **Naps2Service** : Intégration avec NAPS2 CLI (scans et liste des périphériques)
 - **ScanSessionRepository** : Accès à la base de données SQLite
+- **components/** : Composant web réutilisable pour intégration dans des applications web
 
 ## Limitations
 

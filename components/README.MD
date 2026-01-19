@@ -90,30 +90,35 @@ scanModal.addEventListener('scan-error', (e) => {
 
 Le component permet de configurer :
 
-- **Scanner** : Nom du scanner (par défaut: "HP ScanJet Pro 2000 s2 (USB)")
+- **Scanner** : Liste dynamique des scanners disponibles (chargée automatiquement via `/api/devices`)
 - **Taille de papier** : A4, A3, Letter, Legal, etc.
 - **Mode couleur** : Couleur, Niveaux de gris, Noir et blanc
-- **Driver** : WIA (Windows), TWAIN, SANE (Linux)
+- **Driver** : WIA (Windows), TWAIN, SANE (Linux), ESCL, Apple
 - **Source** : Vitre (glass), Chargeur (feeder), Recto-verso (duplex)
 - **Résolution** : DPI (par défaut: 300)
+
+**Note** : La liste des scanners est chargée automatiquement à l'ouverture de la modal et se met à jour automatiquement quand le driver change.
 
 ## Flux de travail
 
 1. L'utilisateur ouvre la modal avec `open()`
-2. L'utilisateur configure les paramètres de scan
-3. L'utilisateur clique sur "Scanner"
-4. Le component crée une session de scan via l'API
-5. Le scan démarre et le statut est vérifié périodiquement
-6. Une fois terminé, le PDF s'affiche en aperçu
-7. L'utilisateur clique sur "Valider"
-8. Le PDF est injecté dans l'input file cible
-9. L'événement `scan-completed` est émis
-10. La modal se ferme automatiquement
+2. Le component charge automatiquement la liste des scanners disponibles via `GET /api/devices`
+3. L'utilisateur sélectionne un scanner (si plusieurs disponibles) et configure les paramètres de scan
+4. Si l'utilisateur change le driver, la liste des scanners est automatiquement rechargée
+5. L'utilisateur clique sur "Scanner"
+6. Le component crée une session de scan via l'API
+7. Le scan démarre et le statut est vérifié périodiquement
+8. Une fois terminé, le PDF s'affiche en aperçu
+9. L'utilisateur clique sur "Valider"
+10. Le PDF est injecté dans l'input file cible
+11. L'événement `scan-completed` est émis
+12. La modal se ferme automatiquement
 
 ## API Backend
 
 Le component communique avec l'API scanner via les endpoints suivants :
 
+- `GET /api/devices?driver={driver}` : Lister les périphériques disponibles (appelé automatiquement)
 - `POST /api/scans` : Créer une session de scan
 - `POST /api/scans/{id}/start` : Démarrer un scan
 - `GET /api/scans/{id}` : Récupérer le statut d'un scan
@@ -132,4 +137,8 @@ Le component communique avec l'API scanner via les endpoints suivants :
 - La modal se ferme avec Escape, clic sur overlay, ou bouton X
 - Le polling du statut s'arrête automatiquement quand le scan est terminé ou en erreur
 - Le PDF est converti en File object pour l'injection dans l'input file
+- Les scanners sont chargés dynamiquement depuis l'API à l'ouverture de la modal
+- La liste des scanners se met à jour automatiquement quand le driver change
+- Si un seul scanner est disponible, il est sélectionné automatiquement
+- Le bouton "Scanner" est désactivé si aucun scanner n'est disponible
 
