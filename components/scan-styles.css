@@ -1,0 +1,286 @@
+/* Styles pour le web component de scan */
+
+:host {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+}
+
+:host([open]) {
+    display: block;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+.modal-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 1200px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    animation: slideIn 0.3s ease-out;
+    overflow: hidden;
+}
+
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8f9fa;
+}
+
+.modal-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.modal-close:hover {
+    background: #e0e0e0;
+    color: #333;
+}
+
+.modal-body {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 0;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.preview-panel {
+    padding: 20px;
+    background: #f5f5f5;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 500px;
+}
+
+.preview-placeholder {
+    text-align: center;
+    color: #999;
+    font-size: 16px;
+}
+
+.preview-pdf {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+}
+
+.preview-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.preview-status {
+    color: #666;
+    font-size: 14px;
+}
+
+.preview-error {
+    color: #dc3545;
+    text-align: center;
+    padding: 20px;
+}
+
+.config-panel {
+    padding: 20px;
+    background: white;
+    overflow-y: auto;
+    border-left: 1px solid #e0e0e0;
+}
+
+.config-section {
+    margin-bottom: 24px;
+}
+
+.config-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.config-message {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.config-group {
+    margin-bottom: 16px;
+}
+
+.config-label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: #555;
+    font-size: 14px;
+}
+
+.config-input,
+.config-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.config-input:focus,
+.config-select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.config-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+}
+
+.config-button {
+    flex: 1;
+    min-width: 100px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.config-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.button-cancel {
+    background: #6c757d;
+    color: white;
+}
+
+.button-cancel:hover:not(:disabled) {
+    background: #5a6268;
+}
+
+.button-scan {
+    background: #007bff;
+    color: white;
+}
+
+.button-scan:hover:not(:disabled) {
+    background: #0056b3;
+}
+
+.button-validate {
+    background: #28a745;
+    color: white;
+}
+
+.button-validate:hover:not(:disabled) {
+    background: #218838;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .modal-body {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto;
+    }
+
+    .config-panel {
+        border-left: none;
+        border-top: 1px solid #e0e0e0;
+        max-height: 50vh;
+    }
+}
+

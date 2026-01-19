@@ -345,6 +345,57 @@
           }
         }
       }
+    },
+    "/devices": {
+      "get": {
+        "summary": "Lister les périphériques de scan disponibles",
+        "operationId": "listDevices",
+        "tags": ["Devices"],
+        "parameters": [
+          {
+            "name": "driver",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["wia", "twain", "escl", "sane", "apple"]
+            },
+            "description": "Filtrer par driver (optionnel)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des périphériques disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceListResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "NAPS2 non disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -495,6 +546,39 @@
             "type": "string",
             "format": "uuid",
             "description": "ID de scan concerné (si applicable)"
+          }
+        }
+      },
+      "DeviceInfo": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nom du périphérique"
+          },
+          "driver": {
+            "type": "string",
+            "description": "Driver utilisé (wia, twain, escl, sane, apple) ou null si non spécifié"
+          },
+          "id": {
+            "type": "string",
+            "description": "Identifiant unique du périphérique"
+          }
+        }
+      },
+      "DeviceListResponse": {
+        "type": "object",
+        "properties": {
+          "devices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeviceInfo"
+            },
+            "description": "Liste des périphériques disponibles"
+          },
+          "count": {
+            "type": "integer",
+            "description": "Nombre de périphériques"
           }
         }
       }

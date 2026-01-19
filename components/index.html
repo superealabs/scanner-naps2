@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Scan Component</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px dashed #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+            cursor: pointer;
+        }
+
+        input[type="file"]:hover {
+            border-color: #007bff;
+            background: #f0f7ff;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .file-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e7f3ff;
+            border-left: 4px solid #007bff;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .file-info h3 {
+            margin-top: 0;
+            color: #007bff;
+        }
+
+        .file-info p {
+            margin: 5px 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test du Component de Scan</h1>
+        
+        <div class="form-group">
+            <label for="fileInput">Fichier PDF</label>
+            <input type="file" id="fileInput" accept=".pdf" />
+        </div>
+
+        <button id="scanBtn">Ouvrir le scanner</button>
+
+        <div class="file-info" id="fileInfo">
+            <h3>Fichier sélectionné</h3>
+            <p><strong>Nom:</strong> <span id="fileName"></span></p>
+            <p><strong>Taille:</strong> <span id="fileSize"></span></p>
+            <p><strong>Type:</strong> <span id="fileType"></span></p>
+        </div>
+    </div>
+
+    <!-- Web Component de Scan -->
+    <scan-modal 
+        id="scanModal"
+        api-base-url="http://localhost:7070/api/scans"
+        target-input-id="fileInput">
+    </scan-modal>
+
+    <!-- Scripts scan -->
+    <script src="scan-api.js"></script>
+    <script src="scan-component.js"></script>
+
+    <script>
+        const scanBtn = document.getElementById('scanBtn');
+        const scanModal = document.getElementById('scanModal');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+
+        // Ouvrir la modal
+        scanBtn.addEventListener('click', () => {
+            scanModal.open();
+        });
+
+        // Écouter les événements du component
+        scanModal.addEventListener('scan-completed', (e) => {
+            console.log('Scan complété:', e.detail);
+            updateFileInfo();
+        });
+
+        scanModal.addEventListener('scan-cancelled', () => {
+            console.log('Scan annulé');
+        });
+
+        scanModal.addEventListener('scan-error', (e) => {
+            console.error('Erreur de scan:', e.detail);
+            alert('Erreur lors du scan: ' + (e.detail?.message || 'Erreur inconnue'));
+        });
+
+        // Mettre à jour l'info du fichier
+        function updateFileInfo() {
+            if (fileInput.files && fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('fileSize').textContent = formatFileSize(file.size);
+                document.getElementById('fileType').textContent = file.type;
+                fileInfo.classList.add('show');
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // Écouter les changements de l'input file
+        fileInput.addEventListener('change', () => {
+            updateFileInfo();
+        });
+    </script>
+</body>
+</html>
+

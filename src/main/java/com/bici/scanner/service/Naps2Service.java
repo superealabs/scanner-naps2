@@ -1,5 +1,6 @@
 package com.bici.scanner.service;
 
+import com.bici.scanner.api.dto.DeviceInfo;
 import com.bici.scanner.config.AppConfig;
 import com.bici.scanner.exception.Naps2NotAvailableException;
 import com.bici.scanner.exception.ScannerException;
@@ -44,6 +45,141 @@ public class Naps2Service {
             logger.debug("NAPS2 non disponible: {}", e.getMessage());
             return false;
         }
+    }
+
+    public List<DeviceInfo> listDevices(String driver) 
+            throws Naps2NotAvailableException, ScannerException {
+        if (!isAvailable()) {
+            throw new Naps2NotAvailableException("NAPS2 command not found or not executable");
+        }
+
+        try {
+            List<String> command = buildListDevicesCommand(driver);
+            logger.info("Exécution NAPS2 listdevices: {}", String.join(" ", command));
+            
+            ProcessBuilder pb = new ProcessBuilder(command);
+            pb.redirectOutput(ProcessBuilder.Redirect.PIPE);
+            pb.redirectErrorStream(true);
+            pb.redirectInput(ProcessBuilder.Redirect.PIPE);
+            
+            Process process = pb.start();
+            
+            // Lire la sortie dans un thread séparé
+            StringBuilder output = new StringBuilder();
+            Future<?> readerFuture = Executors.newSingleThreadExecutor().submit(() -> {
+                try (BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        output.append(line).append("\n");
+                        logger.debug("NAPS2 listdevices output: {}", line);
+                    }
+                } catch (IOException e) {
+                    logger.warn("Erreur lors de la lecture de la sortie NAPS2", e);
+                }
+            });
+            
+            // Timeout plus court pour listdevices (5 secondes)
+            int listDevicesTimeout = Math.min(5, timeoutSeconds);
+            boolean finished = process.waitFor(listDevicesTimeout, TimeUnit.SECONDS);
+            
+            if (!finished) {
+                logger.warn("Timeout lors de la liste des périphériques");
+                process.destroyForcibly();
+                readerFuture.cancel(true);
+                throw new ScannerException("List devices timeout after " + listDevicesTimeout + " seconds");
+            }
+            
+            readerFuture.get(1, TimeUnit.SECONDS); // Attendre que la lecture soit terminée
+            
+            int exitCode = process.exitValue();
+            
+            if (exitCode != 0) {
+                String errorOutput = output.toString();
+                logger.error("NAPS2 listdevices a échoué avec le code {}: {}", exitCode, errorOutput);
+                throw new ScannerException("NAPS2 listdevices failed with exit code " + exitCode + ": " + errorOutput);
+            }
+            
+            // Parser la sortie : une ligne = un périphérique
+            List<DeviceInfo> devices = parseDeviceList(output.toString(), driver);
+            logger.info("{} périphérique(s) trouvé(s)", devices.size());
+            return devices;
+            
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ScannerException("List devices interrupted", e);
+        } catch (IOException e) {
+            logger.error("Erreur lors de l'exécution de NAPS2 listdevices", e);
+            throw new ScannerException("Failed to execute NAPS2 listdevices", e);
+        } catch (ExecutionException | TimeoutException e) {
+            logger.error("Erreur lors de la lecture de la sortie NAPS2", e);
+            throw new ScannerException("Failed to read NAPS2 listdevices output", e);
+        }
+    }
+
+    private List<String> buildListDevicesCommand(String driver) {
+        List<String> command = new ArrayList<>();
+        command.add(naps2Command);
+        command.add("--listdevices");
+        
+        // Ajouter --driver si spécifié et valide
+        if (driver != null && !driver.isEmpty()) {
+            String normalizedDriver = driver.toLowerCase().trim();
+            // Valider que le driver est dans la liste autorisée
+            if (isValidDriver(normalizedDriver)) {
+                command.add("--driver");
+                command.add(normalizedDriver);
+            } else {
+                logger.warn("Driver invalide ignoré: {}", driver);
+            }
+        }
+        
+        return command;
+    }
+
+    private boolean isValidDriver(String driver) {
+        return driver.equals("wia") || driver.equals("twain") || 
+               driver.equals("escl") || driver.equals("sane") || 
+               driver.equals("apple");
+    }
+
+    private List<DeviceInfo> parseDeviceList(String output, String driver) {
+        List<DeviceInfo> devices = new ArrayList<>();
+        
+        if (output == null || output.trim().isEmpty()) {
+            return devices;
+        }
+        
+        String[] lines = output.split("\n");
+        for (String line : lines) {
+            String trimmedLine = line.trim();
+            // Ignorer les lignes vides
+            if (trimmedLine.isEmpty()) {
+                continue;
+            }
+            
+            // Créer un DeviceInfo pour chaque ligne
+            String deviceName = trimmedLine;
+            String deviceId = generateDeviceId(deviceName, driver);
+            DeviceInfo device = new DeviceInfo(deviceName, driver, deviceId);
+            devices.add(device);
+        }
+        
+        return devices;
+    }
+
+    private String generateDeviceId(String deviceName, String driver) {
+        // Générer un ID unique basé sur le nom et le driver
+        // Normaliser : lowercase, remplacer espaces par underscores
+        String normalized = deviceName.toLowerCase()
+                .replaceAll("\\s+", "_")
+                .replaceAll("[^a-z0-9_]", "");
+        
+        if (driver != null && !driver.isEmpty()) {
+            normalized = driver.toLowerCase() + "_" + normalized;
+        }
+        
+        return normalized;
     }
 
     public Path executeScan(String scanId, String scannerName, String optionsJson, Path outputDir) 

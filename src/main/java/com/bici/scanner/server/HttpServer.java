@@ -1,5 +1,6 @@
 package com.bici.scanner.server;
 
+import com.bici.scanner.api.DeviceController;
 import com.bici.scanner.api.HealthController;
 import com.bici.scanner.api.OpenApiController;
 import com.bici.scanner.api.ScanController;
@@ -55,6 +56,7 @@ public class HttpServer {
         // Enregistrement des contrôleurs
         context.addServlet(new ServletHolder(new ScanController(scanService, objectMapper)), "/api/scans/*");
         context.addServlet(new ServletHolder(new HealthController(naps2Service, dbConfig, objectMapper)), "/api/health");
+        context.addServlet(new ServletHolder(new DeviceController(naps2Service, objectMapper)), "/api/devices");
         context.addServlet(new ServletHolder(new OpenApiController()), "/api/openapi.json");
         
         // Servir UI statique depuis les ressources
