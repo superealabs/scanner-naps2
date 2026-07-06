@@ -20,7 +20,9 @@ public class AppConfig {
     private final String host;
     private final Path databasePath;
     private final String naps2Command;
+    private final String saneCommand;
     private final int naps2TimeoutSeconds;
+    private final int saneTimeoutSeconds;
     private final Path storageBasePath;
     private final boolean storageCleanupEnabled;
     private final int storageCleanupDays;
@@ -43,6 +45,12 @@ public class AppConfig {
         this.naps2Command = properties.getProperty("naps2.command", "naps2");
         this.naps2TimeoutSeconds = Integer.parseInt(
             properties.getProperty("naps2.timeout.seconds", "300")
+        );
+
+        // SANE
+        this.saneCommand = properties.getProperty("sane.command", "sane");
+        this.saneTimeoutSeconds = Integer.parseInt(
+                properties.getProperty("sane.timeout.seconds", "300")
         );
         
         // Stockage PDF
@@ -206,6 +214,14 @@ public class AppConfig {
 
     public String getLoggingFilePath() {
         return loggingFilePath;
+    }
+
+    public String getSaneCommand() {
+        return saneCommand;
+    }
+
+    public int getSaneTimeoutSeconds() {
+        return saneTimeoutSeconds;
     }
 }
 
