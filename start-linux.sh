@@ -54,9 +54,9 @@ echo "Démarrage de l'agent de scan..."
 echo "Port: $PORT"
 if [ -n "$CONFIG_FILE" ]; then
     echo "Fichier de configuration: $CONFIG_FILE"
-    java -jar scanner-agent.jar --port=$PORT --config="$CONFIG_FILE"
+    java -jar target/scanner-cin-1.0.0.jar --port=$PORT --config="$CONFIG_FILE"
 else
-    java -jar scanner-agent.jar --port=$PORT
+    java -jar target/scanner-cin-1.0.0.jar --port=$PORT
 fi
 
 EXIT_CODE=$?

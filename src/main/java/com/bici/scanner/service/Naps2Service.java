@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -30,19 +31,37 @@ public class Naps2Service {
 
     public boolean isAvailable() {
         try {
-            ProcessBuilder pb = new ProcessBuilder(naps2Command, "--version");
-            // Redirection des streams pour éviter l'ouverture de fenêtres
-            pb.redirectOutput(ProcessBuilder.Redirect.PIPE);
-            pb.redirectError(ProcessBuilder.Redirect.PIPE);
+            // Fixed: No extra space, correct command format
+            List<String> commands = new ArrayList<>(getCommandByOs(naps2Command));
+
+            commands.add("--help");
+
+//            System.out.println("NAPS2 COMMand , "+naps2Command);
+
+            ProcessBuilder pb = new ProcessBuilder(commands);
+            pb.redirectErrorStream(true);
             Process process = pb.start();
-            boolean finished = process.waitFor(2, TimeUnit.SECONDS);
+
+            // Read output to ensure it works
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains("Usage")) {
+                        // If we see "Usage", it's working
+                        break;
+                    }
+                }
+            }
+
+            boolean finished = process.waitFor(3, TimeUnit.SECONDS);
             if (!finished) {
                 process.destroyForcibly();
                 return false;
             }
             return process.exitValue() == 0;
         } catch (Exception e) {
-            logger.debug("NAPS2 non disponible: {}", e.getMessage());
+            System.err.println("Check exception: " + e.getMessage());
             return false;
         }
     }
@@ -80,7 +99,7 @@ public class Naps2Service {
             });
             
             // Timeout plus court pour listdevices (5 secondes)
-            int listDevicesTimeout = Math.min(5, timeoutSeconds);
+            int listDevicesTimeout = timeoutSeconds;
             boolean finished = process.waitFor(listDevicesTimeout, TimeUnit.SECONDS);
             
             if (!finished) {
@@ -118,8 +137,8 @@ public class Naps2Service {
     }
 
     private List<String> buildListDevicesCommand(String driver) {
-        List<String> command = new ArrayList<>();
-        command.add(naps2Command);
+        List<String> command = new ArrayList<>(getCommandByOs(naps2Command));
+
         command.add("--listdevices");
         
         // Ajouter --driver si spécifié et valide
@@ -133,6 +152,7 @@ public class Naps2Service {
                 logger.warn("Driver invalide ignoré: {}", driver);
             }
         }
+        System.out.println("Device command , "+command.toString());
         
         return command;
     }
@@ -244,9 +264,8 @@ public class Naps2Service {
     }
 
     private List<String> buildCommand(String scannerName, String optionsJson, Path outputFile) {
-        List<String> command = new ArrayList<>();
-        command.add(naps2Command);
-        
+        List<String> command = new ArrayList<>(getCommandByOs(naps2Command));
+
         // Option de sortie
         command.add("-o");
         command.add(outputFile.toAbsolutePath().toString());
@@ -366,6 +385,18 @@ public class Naps2Service {
         public String getErrorOutput() {
             return errorOutput.toString();
         }
+    }
+
+    private  List<String> getCommandByOs(String command){
+        String osName = System.getProperty("os.name");
+        List<String> result = new ArrayList<>();
+        if(!osName.toLowerCase().contains("win")){
+            result.addAll(Arrays.asList(command.trim().replace(".exe","").split("\\.")));
+        }
+        else{
+            result.add(command);
+        }
+        return result;
     }
 }
 

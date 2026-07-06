@@ -118,7 +118,7 @@ class ScanAPI {
      */
     async listDevices(driver = null) {
         // Construire l'URL en remplaçant /scans par /devices
-        const devicesUrl = this.baseUrl.replace('/scans', '/devices');
+        const devicesUrl = this.baseUrl.replace("/scans","/devices");
         
         // Ajouter le paramètre driver si fourni
         const url = driver ? `${devicesUrl}?driver=${encodeURIComponent(driver)}` : devicesUrl;

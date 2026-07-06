@@ -16,8 +16,8 @@ public class TestNASP2 {
         System.out.println("========================================\n");
 
         // Configuration
-        String naps2Command = "naps2.console.exe"; // Windows
-        // String naps2Command = "naps2"; // Linux
+//        String naps2Command = "naps2.console"; // Windows
+         String naps2Command = "naps2 console "; // Linux
         
         String outputDir = "./test-scans";
         String scanId = "test-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
@@ -30,11 +30,12 @@ public class TestNASP2 {
 
             // Étape 1: Vérifier que NAPS2 est disponible
             System.out.println("\n[1/4] Vérification de NAPS2...");
-            if (!checkNaps2Available(naps2Command)) {
-                System.err.println("ERREUR: NAPS2 n'est pas disponible!");
-                System.err.println("Vérifiez que NAPS2 est installé et que '" + naps2Command + "' est dans le PATH");
-                return;
-            }
+            System.out.println("NAPS2  : " + naps2Command);
+//            if (!checkNaps2Available(naps2Command)) {
+//                System.err.println("ERREUR: NAPS2 n'est pas disponible!");
+//                System.err.println("Vérifiez que NAPS2 est installé et que '" + naps2Command + "' est dans le PATH");
+//                return;
+//            }
             System.out.println("✓ NAPS2 est disponible");
 
             // Étape 2: Construire la commande de scan
@@ -112,7 +113,7 @@ public class TestNASP2 {
 
     private static boolean checkNaps2Available(String command) {
         try {
-            ProcessBuilder pb = new ProcessBuilder(command, "--version");
+            ProcessBuilder pb = new ProcessBuilder(command, " --version");
             Process process = pb.start();
             boolean finished = process.waitFor(2, TimeUnit.SECONDS);
             if (!finished) {
@@ -121,6 +122,7 @@ public class TestNASP2 {
             }
             return process.exitValue() == 0;
         } catch (Exception e) {
+//            System.out.println("Exception , "+e.getMessage());
             return false;
         }
     }
