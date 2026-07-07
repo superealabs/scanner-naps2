@@ -16,9 +16,12 @@ public class TestNASP2 {
         System.out.println("========================================\n");
 
         // Configuration
-        String naps2Command = "naps2.console.exe"; // Windows
-        // String naps2Command = "naps2"; // Linux
-        
+        // Par defaut Windows
+        String naps2Command = "naps2.console.exe ";
+        String driver = "wia";
+        String source = "glass";
+        String scannerName = null;
+
         String outputDir = "./test-scans";
         String scanId = "test-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
         Path outputFile = Paths.get(outputDir, scanId + ".pdf");
@@ -30,6 +33,7 @@ public class TestNASP2 {
 
             // Étape 1: Vérifier que NAPS2 est disponible
             System.out.println("\n[1/4] Vérification de NAPS2...");
+            System.out.println("NAPS2  : " + naps2Command);
             if (!checkNaps2Available(naps2Command)) {
                 System.err.println("ERREUR: NAPS2 n'est pas disponible!");
                 System.err.println("Vérifiez que NAPS2 est installé et que '" + naps2Command + "' est dans le PATH");
@@ -41,7 +45,7 @@ public class TestNASP2 {
             System.out.println("\n[2/4] Construction de la commande de scan...");
             // Optionnel: spécifier le profil scanner (exemple: "HP ScanJet Pro 2000 s2 (USB)")
             String scannerProfile = null; // Mettez le nom de votre scanner ici si nécessaire
-            List<String> command = buildScanCommand(naps2Command, outputFile, scannerProfile, 300, "Color", "A4");
+            List<String> command = buildScanCommand(naps2Command, source,scannerName,outputFile, scannerProfile, 300, "Color", "A4");
             System.out.println("Commande: " + String.join(" ", command));
             System.out.println("Fichier de sortie: " + outputFile.toAbsolutePath());
 
@@ -112,24 +116,66 @@ public class TestNASP2 {
 
     private static boolean checkNaps2Available(String command) {
         try {
-            ProcessBuilder pb = new ProcessBuilder(command, "--version");
+            // Fixed: No extra space, correct command format
+            List<String> commands = new ArrayList<>(getCommandByOs(naps2Command));
+
+            commands.add("--help");
+
+
+            ProcessBuilder pb = new ProcessBuilder(commands);
+            pb.redirectErrorStream(true);
             Process process = pb.start();
-            boolean finished = process.waitFor(2, TimeUnit.SECONDS);
+
+            // Read output to ensure it works
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains("Usage")) {
+                        // If we see "Usage", it's working
+                        break;
+                    }
+                }
+            }
+
+            boolean finished = process.waitFor(3, TimeUnit.SECONDS);
             if (!finished) {
                 process.destroyForcibly();
                 return false;
             }
             return process.exitValue() == 0;
         } catch (Exception e) {
+            System.err.println("Check exception: " + e.getMessage());
             return false;
         }
     }
 
-    private static List<String> buildScanCommand(String naps2Command, Path outputFile, 
+    private static   List<String> getCommandByOs(String command){
+        String osName = System.getProperty("os.name");
+        List<String> result = new ArrayList<>();
+        String commande = "naps2";
+        if(!osName.toLowerCase().contains("win")){
+            commande = "naps2 console";
+            result.addAll(Arrays.asList(command.trim().replace(".exe","").split("\\.")));
+        }
+        else{
+            result.add(command);
+        }
+        return result;
+    }
+
+    private static   String getDriverByOS(){
+        String osName = System.getProperty("os.name");
+        if(!osName.toLowerCase().contains("win")){
+            return "sane";
+        }
+        return "wia";
+    }
+
+    private static List<String> buildScanCommand(String naps2Command, String source,String scannerName,Path outputFile,
                                                   String scannerProfile, int dpi, String colorMode, String pageSize) {
-        List<String> command = new ArrayList<>();
-        command.add(naps2Command);
-        
+        List<String> command = new ArrayList<>(getCommandByOs(naps2Command));
+
         // Option de sortie
         command.add("-o");
         command.add(outputFile.toAbsolutePath().toString());
@@ -141,6 +187,8 @@ public class TestNASP2 {
         if (scannerProfile != null && !scannerProfile.isEmpty()) {
             command.add("--profile");
             command.add(scannerProfile);
+        }else{
+            command.add("--noprofile");
         }
         
         // Taille de page
@@ -148,7 +196,20 @@ public class TestNASP2 {
             command.add("--pagesize");
             command.add(pageSize.toLowerCase()); // a4, letter, etc.
         }
-        
+
+        command.add("--driver");
+        command.add(getDriverByOS());
+
+        if(source!=null && !source.isEmpty()){
+            command.add("--source");
+            command.add(source);
+        }
+
+        if (scannerName != null && !scannerName.isEmpty()) {
+            command.add("--device");
+            command.add(scannerName);
+        }
+
         // Résolution (DPI)
         if (dpi > 0) {
             command.add("--dpi");
