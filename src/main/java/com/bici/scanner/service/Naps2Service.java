@@ -36,7 +36,6 @@ public class Naps2Service {
 
             commands.add("--help");
 
-//            System.out.println("NAPS2 COMMand , "+naps2Command);
 
             ProcessBuilder pb = new ProcessBuilder(commands);
             pb.redirectErrorStream(true);
@@ -390,12 +389,17 @@ public class Naps2Service {
     private  List<String> getCommandByOs(String command){
         String osName = System.getProperty("os.name");
         List<String> result = new ArrayList<>();
+        String commande = "naps2";
         if(!osName.toLowerCase().contains("win")){
+            commande = "naps2 console";
             result.addAll(Arrays.asList(command.trim().replace(".exe","").split("\\.")));
+            logger.info("OS detecte : LINUX");
         }
         else{
             result.add(command);
+            logger.info("OS detecte : WINDOWS");
         }
+        logger.info("Commande NAPS2 : {}",commande);
         return result;
     }
 }
