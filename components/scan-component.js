@@ -1,6 +1,14 @@
 /**
  * Web Component Modal pour le scan de documents
  */
+
+// Adresse par défaut du module de scan local. Surchargée (par priorité) par :
+// le champ d'adresse de la modal (mémorisé dans localStorage) > l'attribut
+// api-base-url > cette valeur.
+const DEFAULT_API_URL = 'http://localhost:8090/api/scans';
+// Clé localStorage où l'adresse choisie par l'opérateur est mémorisée.
+const API_STORAGE_KEY = 'scan-modal-api-base';
+
 class ScanModal extends HTMLElement {
     constructor() {
         super();
@@ -19,8 +27,14 @@ class ScanModal extends HTMLElement {
     connectedCallback() {
         this.render();
         this.setupEventListeners();
-        const apiUrl = this.getAttribute('api-base-url') || 'http://localhost:7070/api/scans';
-        this.api = new ScanAPI(apiUrl);
+
+        // Résolution de l'adresse : override runtime (localStorage) > attribut > défaut
+        const stored = this._loadStoredAddress();
+        const attr = this.getAttribute('api-base-url');
+        const initialUrl = stored || (attr ? this._normalizeApiUrl(attr) : DEFAULT_API_URL);
+
+        this.api = new ScanAPI(initialUrl);
+        this._updateAddressInput(initialUrl);
     }
 
     disconnectedCallback() {
@@ -28,8 +42,61 @@ class ScanModal extends HTMLElement {
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
-        if (name === 'api-base-url' && this.api) {
-            this.api.baseUrl = newValue || 'http://localhost:7070/api/scans';
+        // Un override runtime (champ d'adresse -> localStorage) a priorité sur l'attribut.
+        if (name === 'api-base-url' && this.api && !this._loadStoredAddress()) {
+            const url = this._normalizeApiUrl(newValue);
+            this.api.baseUrl = url;
+            this._updateAddressInput(url);
+        }
+    }
+
+    // --- Adresse du module de scan ------------------------------------------
+
+    // Normalise une adresse saisie en URL complète ".../api/scans".
+    // Accepte "192.168.1.5:8090", "http://host:8090", "http://host:8090/api/scans".
+    _normalizeApiUrl(addr) {
+        let s = (addr == null ? '' : String(addr)).trim().replace(/\/+$/, '');
+        if (s === '') return DEFAULT_API_URL;
+        if (!/^https?:\/\//i.test(s)) s = 'http://' + s;
+        if (/\/api\/scans$/i.test(s)) return s;
+        if (/\/api$/i.test(s)) return s + '/scans';
+        return s + '/api/scans';
+    }
+
+    // Valeur "propre" à afficher dans le champ (sans le suffixe /api/scans).
+    _displayAddress(apiUrl) {
+        return String(apiUrl).replace(/\/api\/scans\/?$/i, '');
+    }
+
+    _updateAddressInput(apiUrl) {
+        const input = this.shadowRoot && this.shadowRoot.getElementById('apiAddress');
+        if (input) input.value = this._displayAddress(apiUrl);
+    }
+
+    _loadStoredAddress() {
+        try { return window.localStorage.getItem(API_STORAGE_KEY) || null; }
+        catch (e) { return null; }
+    }
+
+    _saveStoredAddress(apiUrl) {
+        try { window.localStorage.setItem(API_STORAGE_KEY, apiUrl); }
+        catch (e) { /* localStorage indisponible : on ignore */ }
+    }
+
+    // Applique une nouvelle adresse (champ ou appel externe), la mémorise,
+    // et recharge la liste des scanners si la modal est ouverte.
+    applyAddress(addr) {
+        const url = this._normalizeApiUrl(addr);
+        if (this.api) this.api.baseUrl = url;
+        else this.api = new ScanAPI(url);
+        this._saveStoredAddress(url);
+        this._updateAddressInput(url);
+
+        if (this.hasAttribute('open')) {
+            const scannerSelect = this.shadowRoot.getElementById('scannerName');
+            if (scannerSelect) scannerSelect.value = '';
+            const driverSelect = this.shadowRoot.getElementById('driver');
+            this.loadDevices(driverSelect ? driverSelect.value : null);
         }
     }
 
@@ -57,6 +124,12 @@ class ScanModal extends HTMLElement {
                                 <p class="config-message">Configurez les paramètres de scan ci-dessous, puis cliquez sur "Scanner" pour lancer le scan.</p>
                             </div>
                             
+                            <div class="config-group">
+                                <label class="config-label" for="apiAddress">Adresse du module de scan</label>
+                                <input type="text" class="config-input" id="apiAddress" placeholder="http://localhost:8090" autocomplete="off" spellcheck="false">
+                                <p class="config-hint">Serveur de scan à contacter. Ex : <code>http://192.168.1.50:8090</code>. Vide = <code>http://localhost:8090</code>.</p>
+                            </div>
+
                             <div class="config-group">
                                 <label class="config-label" for="scannerName">Scanner</label>
                                 <select class="config-select" id="scannerName">
@@ -293,6 +366,20 @@ class ScanModal extends HTMLElement {
                 line-height: 1.5;
             }
 
+            .config-hint {
+                margin: 6px 0 0;
+                font-size: 12px;
+                color: #888;
+                line-height: 1.4;
+            }
+
+            .config-hint code {
+                background: #f0f0f0;
+                padding: 1px 4px;
+                border-radius: 3px;
+                font-size: 11px;
+            }
+
             .config-group {
                 margin-bottom: 16px;
             }
@@ -437,6 +524,12 @@ class ScanModal extends HTMLElement {
         cancelBtn.addEventListener('click', () => this.handleCancel());
         scanBtn.addEventListener('click', () => this.handleScan());
         validateBtn.addEventListener('click', () => this.handleValidate());
+
+        // Champ d'adresse du module de scan (applique + mémorise à la validation)
+        const apiAddressInput = this.shadowRoot.getElementById('apiAddress');
+        if (apiAddressInput) {
+            apiAddressInput.addEventListener('change', () => this.applyAddress(apiAddressInput.value));
+        }
 
         // Synchronisation driver ↔ devices
         if (driverSelect) {

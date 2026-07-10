@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:7070/api",
+      "url": "http://localhost:8090/api",
       "description": "Serveur local"
     }
   ],

@@ -18,7 +18,7 @@ echo "Version Java détectée: $JAVA_VERSION"
 echo ""
 
 # Configuration par défaut
-PORT=7070
+PORT=8090
 CONFIG_FILE=""
 
 # Parser les arguments
@@ -36,7 +36,7 @@ while [[ $# -gt 0 ]]; do
             echo "Usage: ./start-linux.sh [options]"
             echo ""
             echo "Options:"
-            echo "  --port PORT        Port HTTP (défaut: 7070)"
+            echo "  --port PORT        Port HTTP (défaut: 8090)"
             echo "  --config PATH      Chemin vers fichier de configuration"
             echo "  --help             Afficher cette aide"
             echo ""

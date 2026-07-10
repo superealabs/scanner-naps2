@@ -62,7 +62,7 @@ public class ScannerAgent {
         System.out.println("  java -jar scanner-agent.jar [options]");
         System.out.println();
         System.out.println("Options:");
-        System.out.println("  --port=PORT              Port HTTP (défaut: 7070)");
+        System.out.println("  --port=PORT              Port HTTP (défaut: 8090)");
         System.out.println("  --config=PATH            Chemin vers fichier de configuration");
         System.out.println("  --help, -h               Afficher cette aide");
         System.out.println();

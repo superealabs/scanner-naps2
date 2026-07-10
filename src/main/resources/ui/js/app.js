@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:7070/api';
+const API_BASE = 'http://localhost:8090/api';
 
 let currentScanId = null;
 let statusCheckInterval = null;

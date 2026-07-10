@@ -34,7 +34,7 @@ scan-embed/
 <!-- Web Component -->
 <scan-modal 
     id="scanModal"
-    api-base-url="http://localhost:7070/api/scans"
+    api-base-url="http://localhost:8090/api/scans"
     target-input-id="myFileInput">
 </scan-modal>
 
@@ -72,7 +72,7 @@ scanModal.addEventListener('scan-error', (e) => {
 
 ## Attributs
 
-- `api-base-url` (optionnel) : URL de base de l'API scanner. Par défaut: `http://localhost:7070/api/scans`
+- `api-base-url` (optionnel) : URL de base **initiale** de l'API scanner. Par défaut: `http://localhost:8090/api/scans`. Elle peut être changée à l'exécution via le champ **« Adresse du module de scan »** en haut de la modal ; ce choix est mémorisé dans le navigateur (`localStorage`) et prime alors sur l'attribut.
 - `target-input-id` (optionnel) : ID de l'input file dans lequel injecter le PDF scanné
 
 ## Méthodes
@@ -90,6 +90,7 @@ scanModal.addEventListener('scan-error', (e) => {
 
 Le component permet de configurer :
 
+- **Adresse du module** : serveur de scan à contacter (champ en haut de la modal). Accepte `http://host:port` ou simplement `host:port` ; mémorisé dans le navigateur. Changer l'adresse recharge la liste des scanners.
 - **Scanner** : Liste dynamique des scanners disponibles (chargée automatiquement via `/api/devices`)
 - **Taille de papier** : A4, A3, Letter, Legal, etc.
 - **Mode couleur** : Couleur, Niveaux de gris, Noir et blanc

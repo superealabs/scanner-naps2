@@ -5,7 +5,7 @@ Agent de scan local indépendant en Java 17, utilisant NAPS2 pour scanner des do
 ## Caractéristiques
 
 - **Standalone** : Fonctionne indépendamment, sans backend
-- **API REST locale** : Expose une API REST sur `http://localhost:7070`
+- **API REST locale** : Expose une API REST sur `http://localhost:8090`
 - **Interface web** : Interface web locale accessible via `/ui`
 - **Base de données SQLite** : Stockage embarqué des sessions de scan
 - **Intégration NAPS2** : Utilise NAPS2 via CLI pour les scans
@@ -16,6 +16,31 @@ Agent de scan local indépendant en Java 17, utilisant NAPS2 pour scanner des do
 - **Java 17** ou supérieur
 - **NAPS2** installé et accessible dans le PATH
 - Windows ou Linux
+
+## Configuration de Java 17 (plusieurs JDK installés)
+
+Le build **exige Java 17**. Si votre machine possède plusieurs JDK (par ex. un Java 8 par
+défaut pour d'autres projets), deux scripts configurent **uniquement le terminal courant**
+en Java 17, sans modifier la configuration globale ni les autres terminaux.
+
+#### Windows (cmd)
+
+Depuis une fenêtre cmd **déjà ouverte** (ne pas double-cliquer) :
+```batch
+env-java17.bat
+```
+
+#### Linux (bash)
+
+À **sourcer** (et non exécuter) :
+```bash
+source ./env-java17.sh
+```
+
+Le JDK 17 est résolu dans cet ordre : variable d'environnement `JDK17_HOME`, puis le fichier
+`jdk17.properties` (copiez `jdk17.properties.example` et renseignez le chemin), puis
+auto-détection. Vérifiez avec `java -version` ; le terminal configuré utilise Java 17 pour
+`mvn` et `java`, les autres terminaux restent inchangés.
 
 ## Installation
 
@@ -57,7 +82,7 @@ La configuration par défaut est dans `src/main/resources/application.properties
 
 ```properties
 # Serveur HTTP
-server.port=7070
+server.port=8090
 server.host=127.0.0.1
 
 # Base de données
@@ -85,7 +110,7 @@ java -jar scanner-agent.jar --config=/chemin/vers/config.properties
 
 ## API REST
 
-Base URL : `http://localhost:7070/api`
+Base URL : `http://localhost:8090/api`
 
 ### Endpoints
 
@@ -201,7 +226,7 @@ Lister les périphériques de scan disponibles.
 
 ## Interface Web
 
-L'interface web est accessible sur `http://localhost:7070/ui`
+L'interface web est accessible sur `http://localhost:8090/ui`
 
 Fonctionnalités :
 - Créer et démarrer des scans
@@ -213,7 +238,7 @@ Fonctionnalités :
 
 La documentation interactive de l'API est disponible via Swagger UI :
 
-**URL** : `http://localhost:7070/swagger-ui`
+**URL** : `http://localhost:8090/swagger-ui`
 
 Fonctionnalités :
 - Documentation interactive de tous les endpoints
@@ -255,7 +280,7 @@ components/
 <!-- Web Component -->
 <scan-modal 
     id="scanModal"
-    api-base-url="http://localhost:7070/api/scans"
+    api-base-url="http://localhost:8090/api/scans"
     target-input-id="myFileInput">
 </scan-modal>
 

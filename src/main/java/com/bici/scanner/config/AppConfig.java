@@ -34,7 +34,7 @@ public class AppConfig {
         this.properties = loadProperties(args);
         
         // Serveur HTTP
-        this.port = parsePort(properties.getProperty("server.port", "7070"), args);
+        this.port = parsePort(properties.getProperty("server.port", "8090"), args);
         this.host = properties.getProperty("server.host", "127.0.0.1");
         
         // Base de données

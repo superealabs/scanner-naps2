@@ -46,7 +46,7 @@ echo JAR trouve: %JAR_FILE%
 echo.
 
 REM Configuration par défaut
-set PORT=7070
+set PORT=8090
 set CONFIG_FILE=
 
 REM Parser les arguments
@@ -68,7 +68,7 @@ if "%~1"=="--help" (
     echo Usage: start-windows.bat [options]
     echo.
     echo Options:
-    echo   --port PORT        Port HTTP (defaut: 7070)
+    echo   --port PORT        Port HTTP (defaut: 8090)
     echo   --config PATH      Chemin vers fichier de configuration
     echo   --help             Afficher cette aide
     echo.
