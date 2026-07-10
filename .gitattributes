@@ -1,0 +1,6 @@
+# Fins de ligne normalisees selon le type de script :
+#  - scripts shell (Linux/macOS)  -> LF   (sinon le shebang casse : "bad interpreter")
+#  - scripts batch/cmd (Windows)  -> CRLF
+*.sh  text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf

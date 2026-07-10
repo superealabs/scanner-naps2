@@ -54,6 +54,9 @@ scans/
 test-scans/
 logs/
 
+# Local JDK 17 path (machine-specific ; le .example reste suivi)
+jdk17.properties
+
 # MacOS
 .DS_Store
 

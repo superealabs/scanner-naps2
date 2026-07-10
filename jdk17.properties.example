@@ -1,0 +1,16 @@
+# jdk17.properties - chemin vers un JDK 17 pour ce projet.
+#
+# Une machine = un fichier (specifique a la machine, donc git-ignore).
+# Copiez ce fichier en "jdk17.properties" (sans .example), puis decommentez
+# et ajustez la ligne correspondant a votre OS.
+#
+# La valeur est le dossier qui CONTIENT bin/java (pas le bin lui-meme).
+# Chemin BRUT, SANS guillemets. Les espaces et backslashes sont autorises.
+#
+# Si aucune ligne JDK17_HOME n'est active, les scripts tentent l'auto-detection.
+
+# --- Windows ---------------------------------------------------------------
+# JDK17_HOME=C:\Program Files\Java\jdk-17
+
+# --- Linux -----------------------------------------------------------------
+# JDK17_HOME=/usr/lib/jvm/java-17-openjdk-amd64
